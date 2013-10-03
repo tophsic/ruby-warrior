@@ -14,6 +14,7 @@ class Player
     @action.play
     @action.play
     @action.play
+    @action.play
 
     @health = @warrior.health
   end
@@ -48,7 +49,7 @@ class Attack < Action
       @warrior.attack!
       @turn.done = true
     else
-      Rest.new(@turn)
+      Captive.new(@turn)
     end
   end
 end
@@ -65,5 +66,16 @@ class Rest < Action
 
   def can
     return @warrior.health >= @turn.health
+  end
+end
+
+class Captive < Action
+  def play
+    if @turn.done == false and @warrior.feel.captive?
+      @warrior.rescue!
+      @turn.done = true
+    else
+      Rest.new(@turn)
+    end
   end
 end
