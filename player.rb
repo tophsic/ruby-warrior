@@ -11,7 +11,7 @@ class Player
     end
 
     if @direction == nil
-      @direction = :backward
+      @direction = :forward
     end
 
     Attack.new(self)
@@ -35,8 +35,9 @@ class Action
   end
   
   def play
-    if @warrior.feel(@turn.direction).wall?
-      @turn.direction = :forward
+    if @turn.done == false and @warrior.feel(@turn.direction).wall?
+        @warrior.pivot!
+        @turn.done = true
     end
   end
 end
