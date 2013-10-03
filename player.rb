@@ -1,63 +1,45 @@
 class Player
-  def play_turn(warrior)
-    context = Context.new(warrior)
-    context.handle('attack')
-    context.handle('walk')
-  end
-end
+  attr_reader :done, :warrior
+  attr_writer :done, :action
 
-class Context
-  @warrior
-  @state
-  @done
-    
-  def initialize(warrior)
+  def play_turn(warrior)
     @warrior = warrior
     @done = false
+
+    Attack.new(self)
+    @action.play
+    @action.play
   end
-    
-  def handle(action)
-    if @done == false
-      case action
-        when 'attack'
-          @state = AttackState.new(@warrior, self)
-        else
-          @state = WalkState.new(@warrior, self)
-      end
-      @state.handle()
+end
+
+class Action
+  @turn
+  
+  def initialize(turn)
+    @turn = turn
+    @turn.action = self
+  end
+  
+  def play
+  end
+end
+
+class Walk < Action
+  def play
+    if @turn.done == false
+      @turn.warrior.walk!
+      @turn.done = true
     end
   end
-    
-  def done
-    @done = true
-  end
 end
 
-class State
-  @warrior
-  @context
-  
-  def initialize(warrior, context)
-    @warrior = warrior
-    @context = context
-  end
-  
-  def handle
-  end
-end
-
-class WalkState < State
-  def handle
-    @warrior.walk!
-    @context.done
-  end
-end
-
-class AttackState < State
-  def handle
-    if @warrior.feel.enemy?
-      @warrior.attack!
-      @context.done
+class Attack < Action
+  def play
+    if @turn.warrior.feel.enemy? and @turn.done == false
+      @turn.warrior.attack!
+      @turn.done = true
+    else
+      Walk.new(@turn)
     end
   end
 end
