@@ -1,6 +1,6 @@
 class Player
-  attr_reader :done, :warrior, :health
-  attr_writer :done, :action
+  attr_reader :done, :warrior, :health, :direction
+  attr_writer :done, :action, :direction
 
   def play_turn(warrior)
     @warrior = warrior
@@ -8,6 +8,10 @@ class Player
 
     if @health == nil
       @health = @warrior.health
+    end
+
+    if @direction == nil
+      @direction = :backward
     end
 
     Attack.new(self)
@@ -31,13 +35,18 @@ class Action
   end
   
   def play
+    if @warrior.feel(@turn.direction).wall?
+      @turn.direction = :forward
+    end
   end
 end
 
 class Walk < Action
+  attr_writer :direction
   def play
+    super
     if @turn.done == false
-      @warrior.walk!
+      @warrior.walk!(@direction)
       @turn.done = true
     end
   end
@@ -45,8 +54,9 @@ end
 
 class Attack < Action
   def play
-    if @turn.done == false and @warrior.feel.enemy?
-      @warrior.attack!
+    super
+    if @turn.done == false and @warrior.feel(@turn.direction).enemy?
+      @warrior.attack!(@turn.direction)
       @turn.done = true
     else
       Captive.new(@turn)
@@ -56,23 +66,34 @@ end
 
 class Rest < Action
   def play
-    if @turn.done == false and can and @warrior.health < 15 
+    super
+    if @turn.done == false and can and need(15)
       @warrior.rest!
       @turn.done = true
     else
-      Walk.new(@turn)
+      direction = @turn.direction
+      if need(10)
+        direction = :backward
+      end
+      action = Walk.new(@turn)
+      action.direction = direction
     end
   end
 
   def can
     return @warrior.health >= @turn.health
   end
+
+  def need(health)
+    return @warrior.health < health
+  end
 end
 
 class Captive < Action
   def play
-    if @turn.done == false and @warrior.feel.captive?
-      @warrior.rescue!
+    super
+    if @turn.done == false and @warrior.feel(@turn.direction).captive?
+      @warrior.rescue!(@turn.direction)
       @turn.done = true
     else
       Rest.new(@turn)
