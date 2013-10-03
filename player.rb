@@ -1,15 +1,21 @@
 class Player
-  attr_reader :done, :warrior
+  attr_reader :done, :warrior, :health
   attr_writer :done, :action
 
   def play_turn(warrior)
     @warrior = warrior
     @done = false
 
+    if @health == nil
+      @health = @warrior.health
+    end
+
     Attack.new(self)
     @action.play
     @action.play
     @action.play
+
+    @health = @warrior.health
   end
 end
 
@@ -38,7 +44,7 @@ end
 
 class Attack < Action
   def play
-    if @warrior.feel.enemy? and @turn.done == false
+    if @turn.done == false and @warrior.feel.enemy?
       @warrior.attack!
       @turn.done = true
     else
@@ -49,11 +55,15 @@ end
 
 class Rest < Action
   def play
-    if @warrior.health < 7 and @turn.done == false
+    if @turn.done == false and can and @warrior.health < 15 
       @warrior.rest!
       @turn.done = true
     else
       Walk.new(@turn)
     end
+  end
+
+  def can
+    return @warrior.health >= @turn.health
   end
 end
