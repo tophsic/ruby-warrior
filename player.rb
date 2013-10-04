@@ -16,9 +16,6 @@ class Player
 
     Attack.new(self)
     @action.play
-    @action.play
-    @action.play
-    @action.play
 
     @health = @warrior.health
   end
@@ -60,7 +57,8 @@ class Attack < Action
       @warrior.attack!(@turn.direction)
       @turn.done = true
     else
-      Captive.new(@turn)
+      action = Captive.new(@turn)
+      action.play
     end
   end
 end
@@ -78,6 +76,7 @@ class Rest < Action
       end
       action = Walk.new(@turn)
       action.direction = direction
+      action.play
     end
   end
 
@@ -97,7 +96,8 @@ class Captive < Action
       @warrior.rescue!(@turn.direction)
       @turn.done = true
     else
-      Rest.new(@turn)
+      action = Rest.new(@turn)
+      action.play
     end
   end
 end
