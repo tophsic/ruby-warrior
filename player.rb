@@ -11,8 +11,6 @@ class Player
     end
 
     if @direction == nil
-#      @warrior.pivot!
-#      @done = true
       @direction = :forward
     end
 
