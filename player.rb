@@ -11,9 +11,16 @@ class Player
     end
 
     if @direction == nil
+#      @warrior.pivot!
+#      @done = true
       @direction = :forward
     end
 
+    # Attack
+    # Arc
+    # Rest
+    # Captive
+    # Walk
     Attack.new(self)
     @action.play
 
@@ -51,6 +58,12 @@ class Walk < Action
   attr_writer :direction
   def play
     super
+
+    @direction = @turn.direction
+    if needRest(10) and !canRest
+      @direction = :backward
+    end
+
     if @turn.done == false
       @warrior.walk!(@direction)
       @turn.done = true
@@ -65,7 +78,7 @@ class Attack < Action
       @warrior.attack!(@turn.direction)
       @turn.done = true
     else
-      action = Captive.new(@turn)
+      action = Arc.new(@turn)
       action.play
     end
   end
@@ -91,7 +104,7 @@ class Captive < Action
       @warrior.rescue!(@turn.direction)
       @turn.done = true
     else
-      action = Rest.new(@turn)
+      action = Walk.new(@turn)
       action.play
     end
   end
@@ -105,12 +118,7 @@ class Arc < Action
       @warrior.shoot!
       @turn.done = true
     else
-      direction = @turn.direction
-      if needRest(10)
-        direction = :backward
-      end
-      action = Walk.new(@turn)
-      action.direction = direction
+      action = Captive.new(@turn)
       action.play
     end
   end
@@ -121,7 +129,7 @@ class Arc < Action
     need = false
 
     for space in spaces
-      if space.to_s == 'Wizard'
+      if space.to_s == 'Wizard' or space.to_s == 'Archer'
         need = true
       elsif space.to_s != 'nothing'
         break
