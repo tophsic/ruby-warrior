@@ -37,6 +37,14 @@ class Action
         @turn.done = true
     end
   end
+
+  def canRest
+    return @warrior.health >= @turn.health
+  end
+
+  def needRest(health)
+    return @warrior.health < health
+  end
 end
 
 class Walk < Action
@@ -66,26 +74,13 @@ end
 class Rest < Action
   def play
     super
-    if @turn.done == false and can and need(15)
+    if @turn.done == false and canRest and needRest(15)
       @warrior.rest!
       @turn.done = true
     else
-      direction = @turn.direction
-      if need(10)
-        direction = :backward
-      end
-      action = Walk.new(@turn)
-      action.direction = direction
+      action = Arc.new(@turn)
       action.play
     end
-  end
-
-  def can
-    return @warrior.health >= @turn.health
-  end
-
-  def need(health)
-    return @warrior.health < health
   end
 end
 
@@ -99,5 +94,40 @@ class Captive < Action
       action = Rest.new(@turn)
       action.play
     end
+  end
+end
+
+class Arc < Action
+  def play
+    super
+
+    if @turn.done == false and need
+      @warrior.shoot!
+      @turn.done = true
+    else
+      direction = @turn.direction
+      if needRest(10)
+        direction = :backward
+      end
+      action = Walk.new(@turn)
+      action.direction = direction
+      action.play
+    end
+  end
+
+  def need
+    spaces = @warrior.look
+
+    need = false
+
+    for space in spaces
+      if space.to_s == 'Wizard'
+        need = true
+      elsif space.to_s != 'nothing'
+        break
+      end
+    end
+
+    return need
   end
 end
